@@ -1,20 +1,19 @@
 import {Entity, model, property} from '@loopback/repository';
-import {Task} from './task.model';
 
 @model()
-export class Todolist extends Entity {
-  @property({
-    type: 'string',
-    id: true,
-    generated: true,
-  })
-  _id?: string;
+export class Task extends Entity {
+  // @property({
+  //   type: 'string',
+  //   id: true,
+  //   generated: true,
+  // })
+  // _id: string;
 
   @property({
     type: 'string',
-    default: 'Mi lista de pendientes',
+    required: true,
   })
-  title?: string;
+  title: string;
 
   @property({
     type: 'boolean',
@@ -29,28 +28,23 @@ export class Todolist extends Entity {
   date: string;
 
   @property({
-    type: 'array',
-    itemType: Task,
+    type: 'number',
+    required: true,
   })
-  tasks: object[];
-
-  @property({
-    type: 'string',
-  })
-  userId?: string;
+  priority: number;
   // Define well-known properties here
 
   // Indexer property to allow additional data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [prop: string]: any;
 
-  constructor(data?: Partial<Todolist>) {
+  constructor(data?: Partial<Task>) {
     super(data);
   }
 }
 
-export interface TodolistRelations {
+export interface TaskRelations {
   // describe navigational properties here
 }
 
-export type TodolistWithRelations = Todolist & TodolistRelations;
+export type TaskWithRelations = Task & TaskRelations;

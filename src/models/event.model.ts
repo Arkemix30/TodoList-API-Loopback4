@@ -1,6 +1,6 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model({settings: {strict: false}})
+@model()
 export class Event extends Entity {
   @property({
     type: 'string',
@@ -36,6 +36,12 @@ export class Event extends Entity {
     type: 'string',
   })
   location?: string;
+
+  @property({
+    type: 'array',
+    itemType: 'string'
+  })
+  tags?: string;
 
 
   @property({
