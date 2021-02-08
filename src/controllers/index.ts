@@ -4,3 +4,5 @@ export * from './user.controller';
 export * from './todolist.controller';
 export * from './event.controller';
 export * from './user-event.controller';
+export * from './event-user.controller';
+export * from './todolist-user.controller';

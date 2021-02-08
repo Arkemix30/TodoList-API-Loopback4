@@ -1,5 +1,6 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Task} from './task.model';
+import {User} from './user.model';
 
 @model()
 export class Todolist extends Entity {
@@ -34,10 +35,8 @@ export class Todolist extends Entity {
   })
   tasks: object[];
 
-  @property({
-    type: 'string',
-  })
-  userId?: string;
+  @belongsTo(() => User)
+  userId: string;
   // Define well-known properties here
 
   // Indexer property to allow additional data
