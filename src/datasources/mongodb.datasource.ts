@@ -1,15 +1,17 @@
 import {inject, lifeCycleObserver, LifeCycleObserver} from '@loopback/core';
 import {juggler} from '@loopback/repository';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const config = {
   name: 'mongodb',
   connector: 'mongodb',
-  url: 'mongodb+srv://arkemix:Ligiayfogy30!@arkemix-practicecluster.e7t3k.mongodb.net/agendadb?retryWrites=true&w=majority',
-  host: 'arkemix-practicecluster.e7t3k.mongodb.net',
-  port: 27017,
-  user: 'arkemix',
-  password: 'Ligiayfogy30!',
-  database: 'agendadb',
+  url: process.env.MONGO_URL,
+  host: process.env.HOST,
+  port: process.env.PORT,
+  user: process.env.MONGO_USER,
+  password: process.env.MONGO_PASSWORD,
+  database: process.env.MONGO_DB,
   useNewUrlParser: true
 };
 
