@@ -1,15 +1,17 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
-import {Todolist} from './todolist.model';
+import {Entity, hasMany, model, property} from '@loopback/repository';
 import {Event} from './event.model';
+import {Todolist} from './todolist.model';
 
-@model()
+@model({
+  settings: {hidden: ['password']}
+})
 export class User extends Entity {
   @property({
     type: 'string',
     id: true,
     generated: true,
   })
-  _id?: string;
+  _id: string;
 
   @property({
     type: 'string',
@@ -20,6 +22,9 @@ export class User extends Entity {
   @property({
     type: 'string',
     required: true,
+    index: {
+      unique: true
+    },
   })
   email: string;
 
@@ -45,3 +50,9 @@ export interface UserRelations {
 }
 
 export type UserWithRelations = User & UserRelations;
+
+export type Credentials = {
+  email: string;
+  password: string;
+}
+

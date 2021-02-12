@@ -1,30 +1,48 @@
+import {authenticate, TokenService, UserService} from "@loopback/authentication";
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
-  getModelSchemaRef,
+  del, get,
+  getModelSchemaRef, param,
   patch,
+  post,
   put,
-  del,
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
-import {User} from '../models';
+import {
+  PasswordHasherBindings, TokenServiceBindings,
+  UserServiceBindings
+} from '../keys';
+import {Credentials, User} from '../models';
 import {UserRepository} from '../repositories';
+import {PasswordHasher} from '../services';
 
+type AuthResponse = {
+  token: string,
+  expires: Date
+  user: User,
+}
 export class UserController {
   constructor(
     @repository(UserRepository)
-    public userRepository : UserRepository,
-  ) {}
+    public userRepository: UserRepository,
+    @inject(PasswordHasherBindings.PASSWORD_HASHER)
+    public passwordHasher: PasswordHasher,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    public tokenService: TokenService,
+    @inject(TokenServiceBindings.TOKEN_EXPIRES_IN)
+    public expiresIn: number,
+    @inject(UserServiceBindings.USER_SERVICE)
+    public userService: UserService<User, Credentials>
+  ) { }
 
   @post('/users')
   @response(200, {
@@ -37,16 +55,78 @@ export class UserController {
         'application/json': {
           schema: getModelSchemaRef(User, {
             title: 'NewUser',
-            exclude: ['_id'],
+            exclude: ['_id',],
           }),
         },
       },
     })
-    user: Omit<User, '_id'>,
+    user: User,
   ): Promise<User> {
-    return this.userRepository.create(user);
+    const password = await this.passwordHasher.hashPassword(
+      user.password,
+    );
+
+    return this.userRepository.create({
+      ...user,
+      password
+    });
   }
 
+  @post('/users/login', {
+    responses: {
+      '200': {
+        description: 'User model instance and JWT token',
+        content: {
+          'application/json': {
+            schema: {
+              token: 'string',
+              expires: 'date',
+              user: getModelSchemaRef(User, {exclude: ['password']})
+            },
+          }
+        }
+      }
+    }
+  })
+  async auth(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['email', 'password'],
+            properties: {
+              email: {
+                type: 'string',
+              },
+              password: {
+                type: 'string',
+              }
+            }
+          }
+        }
+      }
+    }) creds: Credentials,
+  ): Promise<AuthResponse> {
+
+    const user = await this.userService.verifyCredentials(creds);
+
+    const profile = this.userService.convertToUserProfile(user);
+
+    const token = await this.tokenService.generateToken(profile);
+
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (this.expiresIn * 1000));
+    return {
+      token,
+      expires,
+      user
+    }
+  }
+
+
+
+  @authenticate('jwt')
   @get('/users/count')
   @response(200, {
     description: 'User model count',
@@ -58,6 +138,7 @@ export class UserController {
     return this.userRepository.count(where);
   }
 
+  @authenticate('jwt')
   @get('/users')
   @response(200, {
     description: 'Array of User model instances',
@@ -95,6 +176,7 @@ export class UserController {
     return this.userRepository.updateAll(user, where);
   }
 
+  @authenticate('jwt')
   @get('/users/{id}')
   @response(200, {
     description: 'User model instance',
@@ -111,6 +193,7 @@ export class UserController {
     return this.userRepository.findById(id, filter);
   }
 
+  @authenticate('jwt')
   @patch('/users/{id}')
   @response(204, {
     description: 'User PATCH success',
@@ -129,6 +212,7 @@ export class UserController {
     await this.userRepository.updateById(id, user);
   }
 
+  @authenticate('jwt')
   @put('/users/{id}')
   @response(204, {
     description: 'User PUT success',
@@ -140,6 +224,7 @@ export class UserController {
     await this.userRepository.replaceById(id, user);
   }
 
+  @authenticate('jwt')
   @del('/users/{id}')
   @response(204, {
     description: 'User DELETE success',

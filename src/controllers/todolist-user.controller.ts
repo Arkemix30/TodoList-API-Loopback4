@@ -1,17 +1,18 @@
+import {authenticate} from '@loopback/authentication';
 import {
-  repository,
+  repository
 } from '@loopback/repository';
 import {
-  param,
   get,
-  getModelSchemaRef,
+  getModelSchemaRef, param
 } from '@loopback/rest';
 import {
   Todolist,
-  User,
+  User
 } from '../models';
 import {TodolistRepository} from '../repositories';
 
+@authenticate('jwt')
 export class TodolistUserController {
   constructor(
     @repository(TodolistRepository)

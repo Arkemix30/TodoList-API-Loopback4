@@ -1,30 +1,36 @@
+import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
-  getModelSchemaRef,
-  patch,
+  del, get,
+  getModelSchemaRef, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {Event} from '../models';
 import {EventRepository} from '../repositories';
 
+@authenticate('jwt')
 export class EventController {
   constructor(
     @repository(EventRepository)
-    public eventRepository : EventRepository,
-  ) {}
+    public eventRepository: EventRepository,
+  ) { }
 
   @post('/events')
   @response(200, {
